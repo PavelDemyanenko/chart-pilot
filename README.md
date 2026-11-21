@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/PavelDemyanenko/chart-pilot/actions/workflows/ci.yml">CI (GitHub Actions)</a>
+  <a href="https://github.com/PavelDemyanenko/chart-pilot/actions/workflows/ci.yml"><img src="https://github.com/PavelDemyanenko/chart-pilot/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT license"></a>
   <img src="https://img.shields.io/badge/Java-25-orange.svg" alt="Java 25">
   <img src="https://img.shields.io/badge/Spring%20Boot-4.1-6db33f.svg" alt="Spring Boot 4.1">
