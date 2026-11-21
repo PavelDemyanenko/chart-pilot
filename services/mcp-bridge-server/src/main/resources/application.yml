@@ -1,0 +1,50 @@
+spring:
+  application:
+    name: mcp-bridge-server
+  threads:
+    virtual:
+      enabled: true
+  ai:
+    mcp:
+      server:
+        name: chart-pilot
+        version: 0.1.0
+        type: SYNC
+        protocol: SSE
+        sse-endpoint: /sse
+        sse-message-endpoint: /mcp/message
+        request-timeout: 90s
+        instructions: >
+          ChartPilot MCP управляет визуализацией данных PostgreSQL (индекс pg-orders)
+          в OpenSearch Dashboards через AG-UI. Сначала вызовите createSession() и попросите
+          пользователя открыть возвращённую ссылку в браузере, затем используйте requestChart().
+
+chartpilot:
+  osd-public-url: ${CHART_PILOT_OSD_PUBLIC_URL:http://localhost:5601}
+  bridge-public-ws-url: ${CHART_PILOT_BRIDGE_PUBLIC_WS_URL:ws://localhost:8080}
+  allowed-origins: ${CHART_PILOT_ALLOWED_ORIGINS:http://127.0.0.1:30560,http://localhost:30560}
+  max-sessions: ${CHART_PILOT_MAX_SESSIONS:10000}
+  session-ttl: 1h
+  context-timeout: 15s
+  chart-timeout: 60s
+
+# PERF-01: отдельный порт management, чтобы ожидание браузеров не голодало health-пробы
+management:
+  server:
+    port: 8081
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: when_authorized
+      probes:
+        enabled: true
+
+logging:
+  structured:
+    format:
+      console: ecs
+  level:
+    com.chartpilot.bridge: INFO

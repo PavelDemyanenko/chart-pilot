@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>4.1.2</version>
+    <relativePath/>
+  </parent>
+
+  <groupId>com.chartpilot</groupId>
+  <artifactId>chart-pilot-mcp</artifactId>
+  <version>0.1.0</version>
+  <packaging>pom</packaging>
+  <name>chart-pilot-mcp</name>
+  <description>ChartPilot MCP monorepo parent + aggregator (BUILD-01, ADR-0012)</description>
+
+  <modules>
+    <module>services/pg-opensearch-connector</module>
+    <module>services/mcp-bridge-server</module>
+    <module>services/agui-adapter</module>
+    <module>services/mock-llm</module>
+    <module>e2e-tests</module>
+  </modules>
+
+  <properties>
+    <java.version>25</java.version>
+    <archunit.version>1.5.1</archunit.version>
+    <spotbugs-plugin.version>4.10.5.0</spotbugs-plugin.version>
+  </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>com.tngtech.archunit</groupId>
+        <artifactId>archunit-junit5</artifactId>
+        <version>${archunit.version}</version>
+        <scope>test</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <dependencies>
+    <!-- архитектурные тесты во всех модулях (ADR-0012) -->
+    <dependency>
+      <groupId>com.tngtech.archunit</groupId>
+      <artifactId>archunit-junit5</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <!-- quality gate: High-findings блокируют сборку каждого модуля -->
+      <plugin>
+        <groupId>com.github.spotbugs</groupId>
+        <artifactId>spotbugs-maven-plugin</artifactId>
+        <version>${spotbugs-plugin.version}</version>
+        <configuration>
+          <effort>Max</effort>
+          <threshold>High</threshold>
+          <failOnError>true</failOnError>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

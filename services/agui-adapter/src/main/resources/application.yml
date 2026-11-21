@@ -1,0 +1,31 @@
+spring:
+  application:
+    name: agui-adapter
+  threads:
+    virtual:
+      enabled: true
+server:
+  port: ${SERVER_PORT:8086}
+adapter:
+  opensearch-url: ${OPENSEARCH_URL:http://opensearch:9200}
+  connector-name: ${CONNECTOR_NAME:ChartPilot LLM Connector}
+  max-iterations: ${MAX_ITERATIONS:10}
+  proxy-host: ${LLM_PROXY_HOST:}
+  proxy-port: ${LLM_PROXY_PORT:0}
+  # GET коннектора в ML Commons маскирует credential — ключ передаётся через env
+  api-key: ${LLM_API_KEY:}
+  osd-url: ${OSD_URL:http://opensearch-dashboards:5601}
+  # публичный адрес для ссылок в ответах (браузер), osd-url — внутрикластерный API
+  osd-public-url: ${OSD_PUBLIC_URL:}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+logging:
+  level:
+    com.chartpilot.agui: INFO

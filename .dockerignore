@@ -1,0 +1,7 @@
+**/target/
+**/node_modules/
+**/build/
+.git/
+*.log
+.jdtls-config/
+.jdtls-workspace/

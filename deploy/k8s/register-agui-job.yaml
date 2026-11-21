@@ -1,0 +1,46 @@
+# ConfigMap register-agui-script создаёт deploy-minikube.sh из deploy/scripts/register-agui-agent.sh.
+# Значение __LLM_ENDPOINT__ подставляет deploy-minikube.sh (mock для E2E_MODE=true).
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: register-agui-agent
+  namespace: chart-pilot
+spec:
+  backoffLimit: 2
+  template:
+    metadata:
+      labels:
+        app: register-agui-agent
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: register
+          image: chartpilot/register-agent:local
+          imagePullPolicy: IfNotPresent
+          command: ["sh", "/scripts/register-agui-agent.sh"]
+          env:
+            - name: OPENSEARCH_URL
+              value: http://opensearch:9200
+            - name: LLM_ENDPOINT
+              value: "__LLM_ENDPOINT__"
+            - name: LLM_MODEL
+              value: "__LLM_MODEL__"
+            - name: LLM_API_KEY
+              value: "__LLM_API_KEY__"
+            - name: E2E_MODE
+              value: "__E2E_MODE__"
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+            limits:
+              memory: "128Mi"
+              cpu: "200m"
+          volumeMounts:
+            - name: script
+              mountPath: /scripts
+      volumes:
+        - name: script
+          configMap:
+            name: register-agui-script
+            defaultMode: 0755

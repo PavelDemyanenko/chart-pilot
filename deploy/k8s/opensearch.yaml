@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: opensearch
+  namespace: chart-pilot
+  labels:
+    app: opensearch
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: opensearch
+  template:
+    metadata:
+      labels:
+        app: opensearch
+    spec:
+      containers:
+        - name: opensearch
+          image: opensearchproject/opensearch:3.10.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 9200
+          env:
+            - name: discovery.type
+              value: single-node
+            - name: DISABLE_SECURITY_PLUGIN
+              value: "true"
+            - name: DISABLE_INSTALL_DEMO_CONFIG
+              value: "true"
+            - name: OPENSEARCH_JAVA_OPTS
+              value: "-Xms1g -Xmx1g"
+            - name: bootstrap.memory_lock
+              value: "false"
+            - name: cluster.routing.allocation.disk.threshold_enabled
+              value: "false"
+            - name: plugins.ml_commons.agent_framework_enabled
+              value: "true"
+            - name: plugins.ml_commons.unified_agent_api_enabled
+              value: "true"
+            - name: plugins.ml_commons.only_run_on_ml_node
+              value: "false"
+            - name: plugins.ml_commons.connector.private_ip_enabled
+              value: "true"
+          resources:
+            requests:
+              memory: "1536Mi"
+              cpu: "500m"
+            limits:
+              memory: "2560Mi"
+              cpu: "2"
+          readinessProbe:
+            httpGet:
+              path: /_cluster/health?wait_for_status=yellow&timeout=5s
+              port: 9200
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 30
+          volumeMounts:
+            - name: data
+              mountPath: /usr/share/opensearch/data
+      volumes:
+        - name: data
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: opensearch
+  namespace: chart-pilot
+spec:
+  type: NodePort
+  selector:
+    app: opensearch
+  ports:
+    - port: 9200
+      targetPort: 9200
+      nodePort: 30920

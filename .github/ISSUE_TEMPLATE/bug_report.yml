@@ -1,0 +1,31 @@
+name: Bug report
+description: Something does not work as documented
+labels: [bug]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Actual behaviour vs expected behaviour
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: MCP prompts / commands / URLs (redact secrets)
+    validations:
+      required: true
+  - type: input
+    id: component
+    attributes:
+      label: Component
+      description: connector / bridge / adapter / osd-plugin / deploy / e2e
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs
+      description: kubectl logs / browser console (redact secrets)
+      render: shell

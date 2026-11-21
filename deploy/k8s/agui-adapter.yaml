@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agui-adapter
+  namespace: chart-pilot
+  labels:
+    app: agui-adapter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: agui-adapter
+  template:
+    metadata:
+      labels:
+        app: agui-adapter
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+      containers:
+        - name: agui-adapter
+          image: agui-adapter:local
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8086
+          env:
+            - name: OPENSEARCH_URL
+              value: http://opensearch:9200
+            - name: CONNECTOR_NAME
+              value: "ChartPilot LLM Connector"
+            - name: LLM_PROXY_HOST
+              value: "__LLM_PROXY_HOST__"
+            - name: LLM_PROXY_PORT
+              value: "__LLM_PROXY_PORT__"
+            - name: LLM_API_KEY
+              value: "__LLM_API_KEY__"
+            - name: OSD_PUBLIC_URL
+              value: "__OSD_PUBLIC_URL__"
+            - name: JAVA_TOOL_OPTIONS
+              value: "-XX:MaxRAMPercentage=70.0 -XX:+UseG1GC -XX:+ExitOnOutOfMemoryError -XX:ActiveProcessorCount=2"
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "1"
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8086
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            failureThreshold: 30
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8086
+            initialDelaySeconds: 45
+            periodSeconds: 10
+      volumes:
+        - name: tmp
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: agui-adapter
+  namespace: chart-pilot
+spec:
+  selector:
+    app: agui-adapter
+  ports:
+    - port: 8086
+      targetPort: 8086

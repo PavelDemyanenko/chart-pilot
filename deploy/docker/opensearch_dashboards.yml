@@ -1,0 +1,37 @@
+server.host: "0.0.0.0"
+server.name: osd-chart-pilot
+opensearch.hosts: ["http://opensearch:9200"]
+opensearch.ssl.verificationMode: none
+
+# Security-плагин OpenSearch отключён в стенде (DISABLE_SECURITY_PLUGIN=true) —
+# отключаем и securityDashboards, иначе OSD редиректит на /app/login.
+opensearch_security.enabled: false
+
+# chat требует contextProvider.enabled=true (default false в OSD 3.10; configPath из манифеста — camelCase)
+contextProvider.enabled: true
+# Workspace-режим (default true в 3.10) требует привязки data sources к workspace,
+# иначе чат отвечает "There are no data sources associated with this workspace".
+workspace.enabled: false
+# dataSource plugin (default false в 3.10) регистрирует saved-object type 'data-source';
+# без него чат не может выбрать источник данных и блокирует отправку.
+data_source.enabled: true
+chat.enabled: true
+chat.agUiUrl: "${AG_UI_URL}"
+chat.mlCommonsAgentId: "${AGENT_ID}"
+# memory-маршруты чата регистрируют ML-роутер только при observabilityAgentId
+# (иначе /api/chat/memory/sessions/search -> 503 "ML router not available")
+chat.observabilityAgentId: "${AGENT_ID}"
+
+csp.rules:
+  - "script-src 'unsafe-eval' 'self'"
+  - "worker-src blob: 'self'"
+  - "style-src 'unsafe-inline' 'self'"
+  # SEC-01: connect-src сужен до конкретного адреса моста (вместо ws: wss:)
+  - "connect-src 'self' ws://127.0.0.1:30880 ws://localhost:30880"
+# strict:true в OSD 3.10 включает nonce-CSP, игнорирующий csp.rules;
+# allowedConnectSources расширяет connect-src в обоих режимах.
+csp.strict: false
+csp.allowedConnectSources:
+  - "ws://127.0.0.1:30880"
+  - "ws://localhost:30880"
+csp.warnLegacyBrowsers: false

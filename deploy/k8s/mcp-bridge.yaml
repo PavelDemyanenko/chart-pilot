@@ -1,0 +1,83 @@
+# Значения __OSD_PUBLIC_URL__ и __BRIDGE_WS_URL__ подставляет deploy-minikube.sh (sed).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mcp-bridge-server
+  namespace: chart-pilot
+  labels:
+    app: mcp-bridge-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mcp-bridge-server
+  template:
+    metadata:
+      labels:
+        app: mcp-bridge-server
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+      containers:
+        - name: mcp-bridge-server
+          image: mcp-bridge-server:local
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+            - containerPort: 8081
+          env:
+            - name: CHART_PILOT_OSD_PUBLIC_URL
+              value: "__OSD_PUBLIC_URL__"
+            - name: CHART_PILOT_BRIDGE_PUBLIC_WS_URL
+              value: "__BRIDGE_WS_URL__"
+            - name: CHART_PILOT_ALLOWED_ORIGINS
+              value: "__OSD_PUBLIC_URL__,http://127.0.0.1:30560,http://localhost:30560"
+            - name: JAVA_TOOL_OPTIONS
+              value: "-XX:MaxRAMPercentage=70.0 -XX:+UseG1GC -XX:+ExitOnOutOfMemoryError -XX:ActiveProcessorCount=2"
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+          resources:
+            requests:
+              memory: "384Mi"
+              cpu: "100m"
+            limits:
+              memory: "640Mi"
+              cpu: "1"
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8081
+            initialDelaySeconds: 20
+            periodSeconds: 5
+            failureThreshold: 30
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8081
+            initialDelaySeconds: 60
+            periodSeconds: 10
+      volumes:
+        - name: tmp
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mcp-bridge-server
+  namespace: chart-pilot
+spec:
+  type: NodePort
+  selector:
+    app: mcp-bridge-server
+  ports:
+    - port: 8080
+      targetPort: 8080
+      nodePort: 30880
